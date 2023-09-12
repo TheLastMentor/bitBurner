@@ -1,4 +1,4 @@
-# bitBurner Script Repository
+# TLM bitBurner Script Repository
 
 This repository contains a collection of scripts designed to automate and optimize various tasks in the game Bitburner.
 
