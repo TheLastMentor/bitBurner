@@ -1,16 +1,16 @@
 /** @param {NS} ns **/
 
 // GLOBALS
-var hostArray = [];
-var attackedHosts = [];
-var taintedHosts = [];
-var taintTimer = Date.now();
-var workersAvailable = false;
+var hostArray = []; //array for hosted servers
+var attackedHosts = []; // 
+var infectedHosts = []; // infect = hosts that are running batch operations
+var infectTimer = Date.now(); // Constant clock to sync workers and avoid desync
+var workersAvailable = false; //If no workers are available, we need to call a function to buy inital workers
 var silences = ["getServerMaxMoney", "getHackingLevel", "scan", "getServerRequiredHackingLevel", "sleep", "getServerNumPortsRequired", "getServerMoneyAvailable", "purchaseServer"];
 
 // CONFIG
-var taintPort = 1; // port to use for taint communication
-var taintInterval = 1000 * 60 * 30; // reset taints after 30 minutes
+var infectPort = 1; // port to use for infected communication
+var infectInterval = 1000 * 60 * 30; // reset infects after 30 minutes
 var ram = 1024; // capacity of initial purchased servers
 var serverNameTemplate = "nillabotV"; // template to name your purchased servers
 
@@ -37,7 +37,7 @@ export async function main(ns) {
 		
 
 		for (var worker of workerNodes) {
-			checkTaints(ns);
+			checkinfects(ns);
 			var target = await findTarget(ns);
 			
 			//In case we didn't find a suitable target wait a second and continue with the next worker
@@ -62,7 +62,7 @@ async function findTarget(ns) {
 	var usableServers = findUsableServers(ns, rootedServers);
 	usableServers = sortByMaxMoney(ns, usableServers);
 	for (var server of usableServers) {
-		if (attackedHosts.includes(server) || taintedHosts.includes(server)) {
+		if (attackedHosts.includes(server) || infectedHosts.includes(server)) {
 			continue;
 		} else {
 			target = server;
@@ -190,10 +190,10 @@ function reevaluateAttacks(ns) {
 		}
 	}
 	while (!portEmpty) {
-		message = ns.readPort(taintPort);
+		message = ns.readPort(infectPort);
 		if(message != "NULL PORT DATA") {
-			taintedHosts.push(message);
-			ns.print("Tainted " + message + "...");
+			infectedHosts.push(message);
+			ns.print("infected " + message + "...");
 		} else {
 			portEmpty = true;
 			break;
@@ -201,13 +201,13 @@ function reevaluateAttacks(ns) {
 	}
 }
 
-// reset all taints if configured time has lapsed
-function checkTaints(ns) {
-	if ((Date.now() - taintTimer) > taintInterval)
+// reset all infects if configured time has lapsed
+function checkinfects(ns) {
+	if ((Date.now() - infectTimer) > infectInterval)
 	{
-		taintedHosts = [];
-		taintTimer = Date.now();
-		ns.print("Resetting taints...");
+		infectedHosts = [];
+		infectTimer = Date.now();
+		ns.print("Resetting infects...");
 	}
 }
 

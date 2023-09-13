@@ -7,7 +7,7 @@ var gRam = "";
 var silences = ["exec", "getServerMaxMoney", "sleep", "getServerSecurityLevel", "getServerMinSecurityLevel", "getServerMoneyAvailable", "getServerUsedRam", "getPurchasedServerCost", "getServerMaxRam"];
 
 //	CONFIG
-var taintPort = 1; // port to use for taint communication
+var infectPort = 1; // port to use for infect communication
 var secThresh = 20; // treshold for weakening while growing (point value)
 var serverNameTemplate = "nillabotV"; // template to name your purchased servers
 // percentage of money to steal from target
@@ -53,14 +53,14 @@ export async function main(ns) {
 
 		let totalRam = hRam * hThreads + gRam * gThreads + (w1Threads + w2Threads) * wRam;
 		if (totalRam > workerRam) {
-			await taintAndQuit(ns, target);
+			await infectAndQuit(ns, target);
 		}
 
 		// only continue if we can at least run one iteration, 
 		// this is kinda redundant with the line above but I found to still need it 
 		let iterations = Math.floor(workerRam / totalRam)
 		if (iterations < 1) {
-			await taintAndQuit(ns, target);
+			await infectAndQuit(ns, target);
 		}
 
 		// only run as many iterations as we can start while the first weaken in a run executes
@@ -176,9 +176,9 @@ function fetchGrowSleep(ns, target) {
 	return sTime;
 }
 
-// write target to taint port and kill this script
-async function taintAndQuit(ns, target) {
-	await ns.writePort(taintPort, target);
+// write target to infect port and kill this script
+async function infectAndQuit(ns, target) {
+	await ns.writePort(infectPort, target);
 	ns.exit();
 }
 
